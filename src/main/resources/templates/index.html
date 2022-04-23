@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+        <base href="/asr/100004/static/">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="dialog.css">
+    <link rel="stylesheet" href="dialog-simple.css">
+    <title>Document</title>
+    <style>
+        body {
+            /*background: #000000;*/
+            color: #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <div class="header flex">
+        <div class="border flex">
+            <div @click="pageIndex=0" :class="{'black2':pageIndex==0}" class="base-button big-width black">进程</div>
+            <div @click="pageIndex=1" :class="{'black2':pageIndex==1}" class="base-button big-width black">资源</div>
+            <div @click="pageIndex=2" :class="{'black2':pageIndex==2}" class="base-button big-width black">磁盘</div>
+        </div>
+
+    </div>
+    <div class="container">
+        <div :class="{'select':pageIndex==0}" class="page  flex-col">
+            <header class="padding-10px background-header width100b">
+                <ul class="flex width100b process">
+                    <li class="flex1">进程名</li>
+                    <li>用户</li>
+                    <li>进程ID</li>
+                    <li>线程数</li>
+                    <li>打开文件数</li>
+                    <li class="flex2"> 路径</li>
+                    <li> 操作</li>
+                </ul>
+            </header>
+            <article class="padding-10px width100b">
+                <ul v-for="item in process " class="flex width100b process list ">
+                    <li class="flex1">{{item.name}}</li>
+                    <li>{{item.userName}}</li>
+                    <li>{{item.id}}</li>
+                    <li>{{item.threadCount}}</li>
+                    <li>{{item.openFiles}}</li>
+                    <li class="flex2">{{item.path}}</li>
+                    <li>
+                        <button @click="stopProcess(item)" class="base-button">终止</button>
+                    </li>
+                </ul>
+            </article>
+        </div>
+        <div :class="{'select':pageIndex==1}" class="page flex-col">
+            <div class="module">
+                <div class="title">内存使用率</div>
+                <div id="memory" style="width:600px; height:250px"></div>
+            </div>
+
+            <div class="module">
+                <div class="title">CPU使用率</div>
+                <div id="cpu" style="width:600px; height:250px"></div>
+            </div>
+        </div>
+        <div :class="{'select':pageIndex==2}"  class="page">
+            <div id="diskList" class="disk-list">
+
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://unpkg.com/vue@3.1.1/dist/vue.global.prod.js"></script>
+<script src="echarts.simple.min.js"></script>
+<script type="text/javascript" src="dialog.js"></script>
+
+<script>
+    let root = "/100004/"
+    // let root = ""
+    let monitor = {
+        data() {
+            return {
+                count: 0,
+                process: [],
+                pageIndex: 2
+            }
+        },
+        methods: {
+            stopProcess(process) {
+                Dialog.confirm(`是否终止?${process.name}`, '提示', (dlg) => {
+                    fetch(`${root}/api/process/stop/${process.id}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data)
+                        });
+                    dlg.close();
+                }, (dlg) => {
+                    dlg.close();
+                });
+
+            },
+        },
+
+    }
+    const app = Vue.createApp(monitor).mount("#app")
+
+    setInterval(function () {
+        fetch(`${root}/api/infos`)
+            .then(response => response.json())
+            .then(data => {
+                app.process = data["process"]
+                getCpu(data["cpu"])
+                getMemory(data["memory"])
+            });
+    }, 2000)
+</script>
+<script type="text/javascript" src="memory.js"></script>
+<script type="text/javascript" src="cpu.js"></script>
+<script type="text/javascript" src="disk.js"></script>
+</body>
+
+</html>
