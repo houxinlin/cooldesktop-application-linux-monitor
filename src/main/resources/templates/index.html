@@ -2,15 +2,39 @@
 <html lang="en">
 
 <head>
-        <base href="/asr/100004/static/">
+    <base href="/asr/100004/static/">
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="index.css">
-    <link rel="stylesheet" href="dialog.css">
-    <link rel="stylesheet" href="dialog-simple.css">
-    <title>Document</title>
+    <link rel="stylesheet" href="element.css">
+
+    <script src="vue.js"></script>
+    <script src="element.js"></script>
+    <title>监控</title>
     <style>
+        ::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #00000000;
+            border-radius: 2px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ffffff;
+            border-radius: 13px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ccc7c7;
+        }
+
+        .el-tabs__item {
+            color: #f3f3f3 !important;
+        }
+
         body {
             /*background: #000000;*/
             color: #ffffff;
@@ -20,102 +44,212 @@
 
 <body>
 <div id="app">
-    <div class="header flex">
-        <div class="border flex">
-            <div @click="pageIndex=0" :class="{'black2':pageIndex==0}" class="base-button big-width black">进程</div>
-            <div @click="pageIndex=1" :class="{'black2':pageIndex==1}" class="base-button big-width black">资源</div>
-            <div @click="pageIndex=2" :class="{'black2':pageIndex==2}" class="base-button big-width black">磁盘</div>
-        </div>
+    <el-tabs v-model="activeName" class="monitor-tabs" @tab-click="handleClick">
+        <el-tab-pane label="进程" name="first">
+            <div class="page">
+                <header class="padding-10px background-header width100b">
+                    <ul class="flex width100b process-auto-col process data-row">
+                        <li class="flex1">进程名</li>
+                        <li>用户</li>
+                        <li>进程ID</li>
+                        <li>线程数</li>
+                        <li>打开文件数</li>
+                        <li class="flex2"> 路径</li>
+                        <li> 操作</li>
+                    </ul>
+                </header>
+                <article class="padding-10px width100b element">
+                    <ul v-for="item in process" class="flex data-row process-auto-col process ">
+                        <li class="flex1">{{item.name}}</li>
+                        <li>{{item.userName}}</li>
+                        <li>{{item.id}}</li>
+                        <li>{{item.threadCount}}</li>
+                        <li>{{item.openFiles}}</li>
+                        <li class="flex2">{{item.path}}</li>
+                        <li>
+                            <el-button size="small" @click="setSelectProcessId(item.id)" type="danger">终止</el-button>
+                        </li>
+                    </ul>
+                </article>
+            </div>
+        </el-tab-pane>
+        <el-tab-pane label="资源" name="second">
+            <div class="page flex-col">
+                <div class="module">
+                    <div class="title">内存使用率</div>
+                    <div id="memory" style="width:600px; height:250px"></div>
+                </div>
 
-    </div>
-    <div class="container">
-        <div :class="{'select':pageIndex==0}" class="page  flex-col">
+                <div class="module">
+                    <div class="title">CPU使用率</div>
+                    <div id="cpu" style="width:600px; height:250px"></div>
+                </div>
+            </div>
+        </el-tab-pane>
+        <el-tab-pane label="磁盘" name="third">
+            <div class="page">
+                <div id="diskList" class="disk-list flex flex-col ">
+                </div>
+            </div>
+        </el-tab-pane>
+        <el-tab-pane label="网络" name="fourth">
+            <el-select v-model="netTypeValue" @change="filterChange" placeholder="选择类型">
+                <el-option
+                        v-for="item in netTypeOption"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                        :disabled="item.disabled"
+                />
+            </el-select>
+            <el-select v-model="netStatusValue" @change="filterChange" placeholder="选择状态">
+                <el-option
+                        v-for="item in netStatusOption"
+                        :key="item.value"
+                        :label="item.value"
+                        :value="item.value"
+                        :disabled="item.disabled"
+                />
+            </el-select>
             <header class="padding-10px background-header width100b">
-                <ul class="flex width100b process">
-                    <li class="flex1">进程名</li>
-                    <li>用户</li>
-                    <li>进程ID</li>
-                    <li>线程数</li>
-                    <li>打开文件数</li>
-                    <li class="flex2"> 路径</li>
+                <ul class="flex width100b net-auto-col data-row net">
+                    <li>类型</li>
+                    <li>端口</li>
+                    <li>远程端口</li>
+                    <li>进程</li>
+                    <li>本地地址</li>
+                    <li>远程地址</li>
+                    <li>状态</li>
                     <li> 操作</li>
                 </ul>
             </header>
             <article class="padding-10px width100b">
-                <ul v-for="item in process " class="flex width100b process list ">
-                    <li class="flex1">{{item.name}}</li>
-                    <li>{{item.userName}}</li>
-                    <li>{{item.id}}</li>
-                    <li>{{item.threadCount}}</li>
-                    <li>{{item.openFiles}}</li>
-                    <li class="flex2">{{item.path}}</li>
+                <ul v-for="item in nets" class="flex data-row  net-auto-col">
+                    <li>{{item.type}}</li>
+                    <li>{{item.port}}</li>
+                    <li>{{item.remotePort}}</li>
+                    <li>{{item.processId}}</li>
+                    <li class="text-overflow-hidden">{{item.localAddress}}</li>
+                    <li class="text-overflow-hidden">{{item.remoteAddress}}</li>
+                    <li>{{item.state}}</li>
                     <li>
-                        <button @click="stopProcess(item)" class="base-button">终止</button>
+                        <el-button size="small" @click="setSelectProcessId(item.processId)" type="danger">终止</el-button>
                     </li>
                 </ul>
             </article>
-        </div>
-        <div :class="{'select':pageIndex==1}" class="page flex-col">
-            <div class="module">
-                <div class="title">内存使用率</div>
-                <div id="memory" style="width:600px; height:250px"></div>
-            </div>
-
-            <div class="module">
-                <div class="title">CPU使用率</div>
-                <div id="cpu" style="width:600px; height:250px"></div>
-            </div>
-        </div>
-        <div :class="{'select':pageIndex==2}"  class="page">
-            <div id="diskList" class="disk-list">
-
-            </div>
-        </div>
-    </div>
+        </el-tab-pane>
+    </el-tabs>
+    <el-dialog
+            v-model="dialogVisible"
+            title="提示"
+            width="30%"
+            :before-close="handleClose">
+        <span>是否终止此进程</span>
+        <template #footer>
+              <span class="dialog-footer">
+                <el-button @click="dialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="stopProcess">确定</el-button>
+              </span>
+        </template>
+    </el-dialog>
 </div>
-<script src="https://unpkg.com/vue@3.1.1/dist/vue.global.prod.js"></script>
+
 <script src="echarts.simple.min.js"></script>
 <script type="text/javascript" src="dialog.js"></script>
-
 <script>
     let root = "/100004/"
     // let root = ""
     let monitor = {
         data() {
             return {
+                dialogVisible: false,
+                netStatusOption: [{
+                    value: 'All',
+                }, {
+                    value: 'LISTEN',
+                }, {
+                    value: 'CLOSE_WAIT',
+                }, {
+                    value: 'ESTABLISHED',
+                }, {
+                    value: 'SYN_SENT',
+                }, {
+                    value: 'TIME_WAIT',
+                }, {
+                    value: 'CLOSED',
+                }, {
+                    value: 'LAST_ACK',
+                },],
+                netTypeOption: [
+                    {
+                        value: 'All',
+                    },
+                    {
+                        value: 'tcp4',
+                    }, {
+                        value: 'tcp6',
+                    }, {
+                        value: 'udp4',
+                    }, {
+                        value: 'udp6',
+                    }],
+                netTypeValue: "",
+                netStatusValue: "",
+                counter: 0,
                 count: 0,
                 process: [],
-                pageIndex: 2
+                activeName: "first",
+                nets: [],
+                selectProcessId: -1
             }
         },
+        created() {
+            console.log(this)
+            let that = this
+            setInterval(function () {
+                fetch(`${root}/api/infos`)
+                    .then(response => response.json())
+                    .then(data => {
+                        that.process = data["process"]
+                        that.filterNet(data["net"])
+                        getCpu(data["cpu"])
+                        getMemory(data["memory"])
+                    });
+            }, 2000)
+        },
         methods: {
-            stopProcess(process) {
-                Dialog.confirm(`是否终止?${process.name}`, '提示', (dlg) => {
-                    fetch(`${root}/api/process/stop/${process.id}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log(data)
-                        });
-                    dlg.close();
-                }, (dlg) => {
-                    dlg.close();
-                });
+            filterNet(netTable) {
+                if (this.netTypeValue != "" && this.netTypeValue != "All") {
+                    netTable = netTable.filter((value) => value.type == this.netTypeValue)
+                }
+                if (this.netStatusValue != "" && this.netStatusValue != "All") {
+                    netTable = netTable.filter((value) => value.state == this.netStatusValue)
+                }
+                this.nets = netTable
+            },
+            filterChange() {
+                this.filterNet(this.nets)
+            },
+            setSelectProcessId(id) {
+                this.selectProcessId = id
+                this.dialogVisible = true
 
+            },
+            stopProcess() {
+                this.dialogVisible = false
+                fetch(`${root}/api/process/stop/${this.selectProcessId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                    });
             },
         },
 
     }
-    const app = Vue.createApp(monitor).mount("#app")
+    const app = Vue.createApp(monitor)
+    app.use(ElementPlus);
+    app.mount("#app")
 
-    setInterval(function () {
-        fetch(`${root}/api/infos`)
-            .then(response => response.json())
-            .then(data => {
-                app.process = data["process"]
-                getCpu(data["cpu"])
-                getMemory(data["memory"])
-            });
-    }, 2000)
+
 </script>
 <script type="text/javascript" src="memory.js"></script>
 <script type="text/javascript" src="cpu.js"></script>

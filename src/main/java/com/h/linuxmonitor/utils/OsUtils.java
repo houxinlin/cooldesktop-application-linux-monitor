@@ -1,14 +1,13 @@
 package com.h.linuxmonitor.utils;
 
-import com.h.linuxmonitor.bean.CpuInfo;
-import com.h.linuxmonitor.bean.Disk;
-import com.h.linuxmonitor.bean.Memory;
+import com.h.linuxmonitor.bean.*;
 import com.h.linuxmonitor.bean.Process;
 import org.springframework.util.StringUtils;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.software.os.FileSystem;
+import oshi.software.os.InternetProtocolStats;
 import oshi.software.os.OSFileStore;
 import oshi.software.os.OSProcess;
 
@@ -18,12 +17,40 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class OsUtils {
+    static SystemInfo systemInfo = new SystemInfo();
 
+    public static String byteArrayToIp(byte[] bs) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < bs.length; i++) {
+            if (i != bs.length - 1) {
+                sb.append(bs[i] & 0xff).append(".");
+            } else {
+                sb.append(bs[i] & 0xff);
+            }
+        }
+        return sb.toString();
+    }
+
+    public static List<NetInfo> getNetInfos() {
+        List<Process> processes = listProcess();
+        return systemInfo.getOperatingSystem()
+                .getInternetProtocolStats()
+                .getConnections()
+                .stream()
+                .map(ipConnection -> createNetInfo(ipConnection)).collect(Collectors.toList());
+    }
+
+    private static NetInfo createNetInfo(InternetProtocolStats.IPConnection ipConnection) {
+        return new NetInfo(ipConnection.getLocalPort(), ipConnection.getForeignPort(), ipConnection.getType(),
+                ipConnection.getowningProcessId(), ipConnection.getState().toString(), byteArrayToIp(ipConnection.getLocalAddress()), byteArrayToIp(ipConnection.getForeignAddress()));
+    }
 
     public static List<Process> listProcess() {
-        SystemInfo systemInfo = new SystemInfo();
+
         List<Process> result = new ArrayList<>();
         List<OSProcess> processes = systemInfo.getOperatingSystem().getProcesses();
         processes.forEach(osProcess -> {

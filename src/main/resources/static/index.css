@@ -55,7 +55,7 @@ ul, li {
     box-sizing: border-box;
     padding: 10px;
 }
-.process{
+.data-row{
     border-bottom: 1px #262626cc solid;
 }
 
@@ -67,12 +67,13 @@ ul, li {
     flex: none;
 }
 
-.process li {
-    flex: 0.2;
-    padding: 7px 0px;
+.data-row li {
+    flex: 1;
+    padding: 7px 11px;
+    word-break: break-all;
 }
-.process.list:hover{
-    background: #323232e8;
+.data-row:hover{
+    background: rgba(42, 42, 42, 0.61);
 }
 .base-button{
     outline: none;
@@ -115,4 +116,28 @@ ul, li {
 .disk-desc{
     color: #ffffff;
     text-align: center;
+}
+.disk-list{
+    justify-content: center;
+    align-items: center;
+}
+.text-overflow-hidden{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space:nowrap;
+}
+@media screen and (max-width: 800px) {
+    .process-auto-col li:nth-of-type(6),
+    .process-auto-col li:nth-of-type(5),
+    .process-auto-col  li:nth-of-type(4),
+    .process-auto-col  li:nth-of-type(3){
+        display: none;
+    }
+
+    .net-auto-col li:nth-of-type(6),
+    .net-auto-col li:nth-of-type(5),
+    .net-auto-col  li:nth-of-type(4),
+    .net-auto-col  li:nth-of-type(3){
+        display: none;
+    }
 }

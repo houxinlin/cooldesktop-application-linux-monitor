@@ -20,21 +20,26 @@ public class IndexController {
         result.put("process", OsUtils.listProcess());
         result.put("memory", OsUtils.getMemory());
         result.put("cpu", OsUtils.getCpuInfo());
+        result.put("net", OsUtils.getNetInfos());
         return result;
     }
 
     @GetMapping("/process/stop/{id}")
     public Map<String, Object> stopProcess(@PathVariable("id") int id) {
         HashMap<String, Object> result = new HashMap<>();
-        try {
-            java.lang.Process kill = Runtime.getRuntime().exec("kill -9 " + id);
-            kill.waitFor();
-            result.put("status", 0);
-        } catch (Exception e) {
-            result.put("status", -1);
+        result.put("status", -1);
+        if (id != -1) {
+            try {
+                java.lang.Process kill = Runtime.getRuntime().exec("kill -9 " + id);
+                result.put("status", 0);
+                kill.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return result;
     }
+
 
     @GetMapping("/dis/get")
     public List<Disk> getDis() {
