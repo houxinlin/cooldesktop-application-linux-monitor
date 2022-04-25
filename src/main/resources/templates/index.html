@@ -44,7 +44,7 @@
 
 <body>
 <div id="app">
-    <el-tabs v-model="activeName" class="monitor-tabs" @tab-click="handleClick">
+    <el-tabs v-cloak v-model="activeName" class="monitor-tabs" @tab-click="handleClick">
         <el-tab-pane label="进程" name="first">
             <div class="page">
                 <header class="padding-10px background-header width100b">
@@ -140,6 +140,7 @@
         </el-tab-pane>
     </el-tabs>
     <el-dialog
+
             v-model="dialogVisible"
             title="提示"
             width="30%"
@@ -234,6 +235,8 @@
                 this.selectProcessId = id
                 this.dialogVisible = true
 
+            },
+            selectCallback() {
             },
             stopProcess() {
                 this.dialogVisible = false

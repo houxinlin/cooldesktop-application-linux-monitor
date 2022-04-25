@@ -1,7 +1,7 @@
 package com.h.linuxmonitor.utils;
 
-import com.h.linuxmonitor.bean.*;
 import com.h.linuxmonitor.bean.Process;
+import com.h.linuxmonitor.bean.*;
 import org.springframework.util.StringUtils;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
@@ -17,7 +17,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class OsUtils {
