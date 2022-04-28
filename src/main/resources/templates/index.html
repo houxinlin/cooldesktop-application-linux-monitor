@@ -59,7 +59,7 @@
                     </ul>
                 </header>
                 <article class="padding-10px width100b element">
-                    <ul v-for="item in process" class="flex data-row process-auto-col process ">
+                    <ul v-cloak v-for="item in process" class="flex data-row process-auto-col process ">
                         <li class="flex1">{{item.name}}</li>
                         <li>{{item.userName}}</li>
                         <li>{{item.id}}</li>
@@ -77,12 +77,12 @@
             <div class="page flex-col">
                 <div class="module">
                     <div class="title">内存使用率</div>
-                    <div id="memory" style="width:600px; height:250px"></div>
+                    <div id="memory" style="width:500px; height:250px"></div>
                 </div>
 
                 <div class="module">
                     <div class="title">CPU使用率</div>
-                    <div id="cpu" style="width:600px; height:250px"></div>
+                    <div id="cpu" style="width:500px; height:250px"></div>
                 </div>
             </div>
         </el-tab-pane>

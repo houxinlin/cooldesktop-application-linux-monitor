@@ -6,7 +6,7 @@ function getMemory(data){
     }
     let value = data.use / data.total * 100
     memoryData.push(value)
-    var option = {
+    let option = {
         title: {
             text: '内存使用率'
         },
